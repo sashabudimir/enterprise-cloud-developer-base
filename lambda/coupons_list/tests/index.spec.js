@@ -1,16 +1,24 @@
 const { handler } = require('../index.js');
+const expectedCoupons = require('../../../samples/t1_sample_coupons_list_response.json');
 
 describe('Coupon list', () => {
 
-  test('Should return success status', async (done) => {
+  test('Returns the supplied coupons for an API Gateway GET event', async () => {
+    const event = {
+      resource: '/coupons_poc', path: '/coupons_poc', httpMethod: 'GET',
+      headers: {}, queryStringParameters: null, body: null,
+      requestContext: { stage: 'local' }, isBase64Encoded: false
+    };
+    const response = await handler(event, {});
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['Content-Type']).toBe('application/json');
+    expect(typeof response.body).toBe('string');
+    expect(JSON.parse(response.body)).toStrictEqual(expectedCoupons);
+  });
 
-    const expectedResponse = { status: 'success' };
-
-    const response = await handler({}, null);
-    const responseParsed = JSON.parse(response.body);
-
-    expect(responseParsed).toStrictEqual(expectedResponse);
-
-    done();
+  test('Returns a fresh serialized response on every invocation', async () => {
+    const first = JSON.parse((await handler({}, {})).body);
+    first[0].title = 'modified by client';
+    expect(JSON.parse((await handler({}, {})).body)).toStrictEqual(expectedCoupons);
   });
 });

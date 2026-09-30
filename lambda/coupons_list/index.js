@@ -1,8 +1,9 @@
-exports.handler =  async function(event, context) {
+const coupons = require('./coupons.json');
+
+exports.handler = async function(event, context) {
   return {
     statusCode: 200,
-    body: JSON.stringify({
-      status: 'success'
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(coupons)
   };
-}
+};

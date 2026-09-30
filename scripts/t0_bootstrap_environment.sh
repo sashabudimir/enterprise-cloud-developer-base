@@ -10,6 +10,7 @@ function fail() {
   exit 1
 }
 
+if [[ "${BOOTSTRAP_RESUME:-0}" != "1" ]]; then
 echo "Creating production policy"
 awslocal iam create-policy --policy-name "coupons_production_policy" --policy-document file://scripts/coupons_production_policy.json
 [ $? == 0 ] || fail 1 "Failed to create production policy"
@@ -53,9 +54,11 @@ awslocal dynamodb put-item \
 [ $? == 0 ] || fail 1 "Failed to add sample user to database"
 echo "Plaintext: 4LWs6xnc1t32BzXA"
 
+fi
+
 echo "Creating lambda functions"
 echo "Installing dependencies for coupons_get_by_id"
-npm install --prefix ./lambda/coupons_get_by_id
+(cd "./lambda/coupons_get_by_id" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_get_by_id function"
@@ -68,15 +71,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_get_by_id function"
 awslocal lambda create-function \
     --function-name "coupons_get_by_id" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_get_by_id.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_get_by_id function created successfully"
 
 echo "Installing dependencies for coupons_update"
-npm install --prefix ./lambda/coupons_update
+(cd "./lambda/coupons_update" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_update function"
@@ -89,15 +92,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_update function"
 awslocal lambda create-function \
     --function-name "coupons_update" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_update.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_get_by_id function created successfully"
 
 echo "Installing dependencies for coupons_get_token"
-npm install --prefix ./lambda/coupons_get_token
+(cd "./lambda/coupons_get_token" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_get_token function"
@@ -110,15 +113,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_get_token function"
 awslocal lambda create-function \
     --function-name "coupons_get_token" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_get_token.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_get_token function created successfully"
 
 echo "Installing dependencies for coupons_to_secure"
-npm install --prefix ./lambda/coupons_to_secure
+(cd "./lambda/coupons_to_secure" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_to_secure function"
@@ -131,15 +134,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_to_secure function"
 awslocal lambda create-function \
     --function-name "coupons_to_secure" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_to_secure.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_to_secure function created successfully"
 
 echo "Installing dependencies for coupons_import"
-npm install --prefix ./lambda/coupons_import
+(cd "./lambda/coupons_import" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_import function"
@@ -152,15 +155,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_import function"
 awslocal lambda create-function \
     --function-name "coupons_import" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_import.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_import function created successfully"
 
 echo "Installing dependencies for coupons_import_presigned_url"
-npm install --prefix ./lambda/coupons_import_presigned_url
+(cd "./lambda/coupons_import_presigned_url" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_import_presigned_url function"
@@ -173,15 +176,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_import_presigned_url function"
 awslocal lambda create-function \
     --function-name "coupons_import_presigned_url" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_import_presigned_url.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_import_presigned_url function created successfully"
 
 echo "Installing dependencies for coupons_event_publisher"
-npm install --prefix ./lambda/coupons_event_publisher
+(cd "./lambda/coupons_event_publisher" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_event_publisher function"
@@ -194,15 +197,15 @@ cd $PROJECT_DIR
 echo "Creating coupons_event_publisher function"
 awslocal lambda create-function \
     --function-name "coupons_event_publisher" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_event_publisher.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_event_publisher function created successfully"
 
 echo "Installing dependencies for coupons_notification_sender"
-npm install --prefix ./lambda/coupons_notification_sender
+(cd "./lambda/coupons_notification_sender" && npm install)
 [ $? == 0 ] || fail 1 "Failed to install dependencies"
 
 echo "Creating deployment package for coupons_notification_sender function"
@@ -215,10 +218,10 @@ cd $PROJECT_DIR
 echo "Creating coupons_notification_sender function"
 awslocal lambda create-function \
     --function-name "coupons_notification_sender" \
-    --runtime "nodejs14.x" \
+    --runtime "nodejs22.x" \
     --zip-file fileb://coupons_notification_sender.zip \
     --handler "index.handler" \
-    --role "coupons_production_role"
+    --role "arn:aws:iam::000000000000:role/coupons_production_role"
 [ $? == 0 ] || fail 3 "Failed to create function"
 echo "coupons_notification_sender function created successfully"
 
