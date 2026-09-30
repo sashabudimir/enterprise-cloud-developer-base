@@ -1,0 +1,20 @@
+# Run in Git Bash with Docker and LocalStack running.
+cd /c/Users/Owner/Documents/enterprise-cloud-developer-base
+
+# Deploy the role, Lambda and endpoint; run tests.
+bash scripts/run_part1.sh
+
+# Save actual unit test results.
+(cd lambda/coupons_list && npm test -- --runInBand --json --outputFile=../../unit-test-results.json)
+
+# Save actual endpoint response.
+curl --fail --silent --show-error "$(cat .coupons_base_url)/coupons_poc" -o output.json
+cat output.json
+
+# Save actual Newman results.
+npx --yes newman run newman_tests/coupons_newman.json --env-var "baseUrl=$(cat .coupons_base_url)" --reporters cli,json --reporter-json-export newman-results.json
+
+# Commit and push the submission files.
+git add Command.txt lambda/coupons_list newman_tests/coupons_newman.json output.json unit-test-results.json newman-results.json
+git commit -m "Match Part 1 success message and add submission evidence"
+git push origin main

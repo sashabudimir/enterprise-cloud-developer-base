@@ -1,0 +1,357 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "d7851e76-7c26-4de5-ad9a-5ccfdf92dc85",
+        "name": "GET coupons API success message",
+        "request": {
+          "url": {
+            "path": [
+              "coupons_poc"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "459fda84-0059-43fe-b449-a56b34cba311",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                "pm.test(\"JSON content type\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                "pm.test(\"Required success message\", () => pm.expect(pm.response.json()).to.deep.equal({message: \"Coupons API is working successfully\"}));"
+              ],
+              "_lastExecutionId": "c2c09390-89e3-45a2-94a5-57b266643f08"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://REPLACE_API_ID.execute-api.localhost.localstack.cloud:4566/local",
+        "key": "baseUrl"
+      }
+    ],
+    "info": {
+      "_postman_id": "2e378db6-ef7a-4f93-b5ed-4b2334f1f259",
+      "name": "Ideal Trips Coupons - Part 1",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "bf0866cd-2fa8-4745-8a43-a1dc7c530ba1",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://ivh9avs2rq.execute-api.localhost.localstack.cloud:4566/local",
+        "key": "baseUrl"
+      }
+    ]
+  },
+  "globals": {
+    "id": "0cb8d27e-d305-48b5-8926-8ce0e2c5e275",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 3,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 61,
+      "responseMin": 61,
+      "responseMax": 61,
+      "responseSd": 0,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1790741350356,
+      "completed": 1790741350487
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 1,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "8e0337c1-efd7-4d53-82e5-80ab210a711e",
+          "httpRequestId": "8cbaf110-cc1c-4f0f-b749-baab3ff21c49"
+        },
+        "item": {
+          "id": "d7851e76-7c26-4de5-ad9a-5ccfdf92dc85",
+          "name": "GET coupons API success message",
+          "request": {
+            "url": {
+              "path": [
+                "coupons_poc"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "459fda84-0059-43fe-b449-a56b34cba311",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"JSON content type\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test(\"Required success message\", () => pm.expect(pm.response.json()).to.deep.equal({message: \"Coupons API is working successfully\"}));"
+                ],
+                "_lastExecutionId": "c2c09390-89e3-45a2-94a5-57b266643f08"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons_poc"
+            ],
+            "host": [
+              "ivh9avs2rq",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "4c19f2c8-f7cd-454d-b976-9e36f0691fd1",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "ivh9avs2rq.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "9f325ccf-c9df-444f-bf84-f7fa2c1fde22",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 30 Sep 2026 04:09:10 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "49"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "199178cd-62ca-4635-ad43-4e0b3fad387d"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "4ca4de5c="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6abc8b66-48e4acc73d9dc18bda91b659;Parent=23de14b742f504d3;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              67,
+              111,
+              117,
+              112,
+              111,
+              110,
+              115,
+              32,
+              65,
+              80,
+              73,
+              32,
+              105,
+              115,
+              32,
+              119,
+              111,
+              114,
+              107,
+              105,
+              110,
+              103,
+              32,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              102,
+              117,
+              108,
+              108,
+              121,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 61,
+          "responseSize": 49
+        },
+        "id": "d7851e76-7c26-4de5-ad9a-5ccfdf92dc85",
+        "assertions": [
+          {
+            "assertion": "HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "JSON content type",
+            "skipped": false
+          },
+          {
+            "assertion": "Required success message",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 49
+    },
+    "failures": [],
+    "error": null
+  }
+}

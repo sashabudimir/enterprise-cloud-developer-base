@@ -1,9 +1,9 @@
 const { handler } = require('../index.js');
-const expectedCoupons = require('../../../samples/t1_sample_coupons_list_response.json');
+const expectedCoupons = { message: "Coupons API is working successfully" };
 
 describe('Coupon list', () => {
 
-  test('Returns the supplied coupons for an API Gateway GET event', async () => {
+  test('Returns the required success message for an API Gateway GET event', async () => {
     const event = {
       resource: '/coupons_poc', path: '/coupons_poc', httpMethod: 'GET',
       headers: {}, queryStringParameters: null, body: null,
@@ -18,7 +18,7 @@ describe('Coupon list', () => {
 
   test('Returns a fresh serialized response on every invocation', async () => {
     const first = JSON.parse((await handler({}, {})).body);
-    first[0].title = 'modified by client';
+    first.message = 'modified by client';
     expect(JSON.parse((await handler({}, {})).body)).toStrictEqual(expectedCoupons);
   });
 });
