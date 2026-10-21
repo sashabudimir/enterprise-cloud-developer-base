@@ -1,0 +1,5 @@
+{
+  "baseUrl": "http://4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566/local",
+  "get": "http://4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566/local/coupons/319326de971100158f6fa0daeec978fba1f17e4b",
+  "put": "http://4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566/local/coupons/319326de971100158f6fa0daeec978fba1f17e4b"
+}

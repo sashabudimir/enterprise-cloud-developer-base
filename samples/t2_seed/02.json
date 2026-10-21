@@ -1,0 +1,29 @@
+{
+  "coupon_id": {
+    "S": "502a81d1564cf66c66e429d9e7c571f872151d2d"
+  },
+  "title": {
+    "S": "Save 25% when booking 10 or more days in Super 8 hotels"
+  },
+  "description": {
+    "S": "Save 25% on Super 8 hotels when you stay 10 or more days from December 1st, 2022 until January 31st, 2023"
+  },
+  "coupon_code": {
+    "S": "STAY10PLUS"
+  },
+  "campaign_id": {
+    "S": "S8STAY10"
+  },
+  "provider_id": {
+    "S": "SUPER8"
+  },
+  "provider_name": {
+    "S": "Super 8"
+  },
+  "start_date": {
+    "S": "1669852800"
+  },
+  "end_date": {
+    "S": "1675123200"
+  }
+}

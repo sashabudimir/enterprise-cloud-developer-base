@@ -1,32 +1,20 @@
 {
   "name": "coupons_update",
   "version": "1.0.0",
-  "description": "Code for the coupons_update lambda",
+  "private": true,
+  "description": "Part 2 DynamoDB coupons_update Lambda",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "lint": "./node_modules/.bin/eslint *.js --fix",
-    "locally": "node -e \"console.log(require('./index').handler({}));\""
+    "test": "jest"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1154.0",
+    "@aws-sdk/lib-dynamodb": "3.1154.0"
   },
   "devDependencies": {
-    "eslint": "^7.6.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jest": "^24.1.3",
-    "aws-sdk-mock": "^5.1.0",
-    "jest": "^26.6.3"
-  },
-  "jest": {
-    "testPathIgnorePatterns": [
-      "/node_modules/"
-    ]
-  },
-  "keywords": [
-    "bvc"
-  ],
-  "author": "BVC",
-  "license": "ISC"
+    "jest": "30.5.2"
+  }
 }

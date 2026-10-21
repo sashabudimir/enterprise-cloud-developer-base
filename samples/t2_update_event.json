@@ -1,0 +1,13 @@
+{
+  "resource": "/coupons/{id}",
+  "path": "/coupons/319326de971100158f6fa0daeec978fba1f17e4b",
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "id": "319326de971100158f6fa0daeec978fba1f17e4b"
+  },
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": "{\"title\":\"Updated coupon title\"}",
+  "isBase64Encoded": false
+}

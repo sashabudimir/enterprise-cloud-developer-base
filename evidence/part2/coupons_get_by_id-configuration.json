@@ -1,0 +1,44 @@
+{
+  "FunctionName": "coupons_get_by_id",
+  "FunctionArn": "arn:aws:lambda:us-east-1:000000000000:function:coupons_get_by_id",
+  "Runtime": "nodejs22.x",
+  "Role": "arn:aws:iam::000000000000:role/coupons_lambda_role",
+  "Handler": "index.handler",
+  "CodeSize": 3491118,
+  "Description": "",
+  "Timeout": 15,
+  "MemorySize": 128,
+  "LastModified": "2026-10-21T00:19:06.892+0000",
+  "CodeSha256": "wduabxi40NWAH4jRiBWtlx/fVyFr7hR5TEUorfq7cOM=",
+  "Version": "$LATEST",
+  "Environment": {
+    "Variables": {
+      "COUPONS_TABLE": "coupons",
+      "DYNAMODB_ENDPOINT": "http://localhost.localstack.cloud:4566"
+    }
+  },
+  "TracingConfig": {
+    "Mode": "PassThrough"
+  },
+  "RevisionId": "3908a999-7e9a-4389-9bc3-33bf698e1271",
+  "State": "Active",
+  "LastUpdateStatus": "Successful",
+  "PackageType": "Zip",
+  "Architectures": [
+    "x86_64"
+  ],
+  "EphemeralStorage": {
+    "Size": 512
+  },
+  "SnapStart": {
+    "ApplyOn": "None",
+    "OptimizationStatus": "Off"
+  },
+  "RuntimeVersionConfig": {
+    "RuntimeVersionArn": "arn:aws:lambda:us-east-1::runtime:8eeff65f6809a3ce81507fe733fe09b835899b99481ba22fd75b5a7338290ec1"
+  },
+  "LoggingConfig": {
+    "LogFormat": "Text",
+    "LogGroup": "/aws/lambda/coupons_get_by_id"
+  }
+}

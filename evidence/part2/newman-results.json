@@ -1,0 +1,3189 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "f9e052e8-1af2-4444-a348-4f2d6fbcd22a",
+        "name": "Read coupon from DynamoDB",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "{{couponId}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "740da0c7-4826-43d9-aed8-dc07dad4a7c6",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"GET returns 200\", () => pm.response.to.have.status(200));",
+                "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                "pm.test(\"Requested coupon and fields\", () => { const data = pm.response.json(); pm.expect(data.coupon_id).to.equal(pm.collectionVariables.get(\"couponId\")); pm.expect(data).to.have.all.keys(\"coupon_id\", \"title\", \"description\", \"coupon_code\", \"campaign_id\", \"provider_id\", \"provider_name\", \"start_date\", \"end_date\"); pm.collectionVariables.set(\"originalCoupon\", JSON.stringify(data)); });"
+              ],
+              "_lastExecutionId": "fc84b721-416d-42e5-8220-8862f9170a52"
+            }
+          }
+        ]
+      },
+      {
+        "id": "4778874d-d465-4940-b3e7-9634d209e69c",
+        "name": "Update existing coupon",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "{{couponId}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Part 2 Newman update\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "a60df5c0-c73c-43ce-9dd5-6116d8b77ff2",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"PUT returns 200\", () => pm.response.to.have.status(200));",
+                "pm.test(\"Updated title and preserved fields\", () => { const expected = JSON.parse(pm.collectionVariables.get(\"originalCoupon\")); expected.title = \"Part 2 Newman update\"; pm.expect(pm.response.json()).to.deep.equal(expected); });"
+              ],
+              "_lastExecutionId": "fb40b138-8c2a-4a22-81b3-2d32ae3e2a60"
+            }
+          }
+        ]
+      },
+      {
+        "id": "36528783-bc60-474c-928b-a19e2cc9fbd9",
+        "name": "Read persisted change",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "{{couponId}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "03855f38-e36f-4dc9-9866-5059fad4124f",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"GET returns 200 after update\", () => pm.response.to.have.status(200));",
+                "pm.test(\"Database persisted the update\", () => pm.expect(pm.response.json().title).to.equal(\"Part 2 Newman update\"));"
+              ],
+              "_lastExecutionId": "ca414107-246e-4311-8a0a-0aa69416947e"
+            }
+          }
+        ]
+      },
+      {
+        "id": "2e1eb468-ee43-47ae-af82-5e41ecf320fe",
+        "name": "Reject invalid JSON",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "{{couponId}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{broken",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f4a3740f-96a0-48c8-94d2-94611484bbc2",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Malformed JSON returns 400\", () => pm.response.to.have.status(400));"
+              ],
+              "_lastExecutionId": "c4a1b883-1df4-40e7-bf91-71cb6496e987"
+            }
+          }
+        ]
+      },
+      {
+        "id": "28048161-5b62-4016-90eb-a28c7eda1b0c",
+        "name": "Missing coupon returns 404",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "part2-missing-coupon"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "bb684a58-a8ea-4f67-9886-f8af628c5699",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Unknown id returns 404\", () => pm.response.to.have.status(404));"
+              ],
+              "_lastExecutionId": "5bd1090e-70e8-4287-b949-658ccd4ce952"
+            }
+          }
+        ]
+      },
+      {
+        "id": "0fe7308f-6d4c-4ff8-8f78-e3fdca9defad",
+        "name": "Cannot update a missing coupon",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "part2-missing-coupon"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\":\"Should not be created\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "36e00f0f-51f0-4b68-9b47-13822315fa44",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Update cannot create an unknown coupon\", () => pm.response.to.have.status(404));"
+              ],
+              "_lastExecutionId": "24c1e4eb-f3a7-4704-89ce-3ebb1c7f2563"
+            }
+          }
+        ]
+      },
+      {
+        "id": "073dfb45-7980-4485-ae16-8b115c3f64cc",
+        "name": "Restore original coupon",
+        "request": {
+          "url": {
+            "path": [
+              "coupons",
+              "{{couponId}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{{originalCoupon}}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "62e0501b-d7dd-42bc-8563-8d6c7ea4db7b",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Restore returns 200\", () => pm.response.to.have.status(200));",
+                "pm.test(\"Original fields restored\", () => pm.expect(pm.response.json()).to.deep.equal(JSON.parse(pm.collectionVariables.get(\"originalCoupon\"))));"
+              ],
+              "_lastExecutionId": "338493c0-4d2b-44f8-bbb9-8287d7f66950"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://REPLACE_API_ID.execute-api.localhost.localstack.cloud:4566/local",
+        "key": "baseUrl"
+      },
+      {
+        "type": "any",
+        "value": "319326de971100158f6fa0daeec978fba1f17e4b",
+        "key": "couponId"
+      }
+    ],
+    "info": {
+      "_postman_id": "8099520a-4c0b-4337-b3cb-bedc947a4523",
+      "name": "Ideal Trips Coupons - Part 2",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "102a45bc-5d74-4d37-9e11-2218cbf9fa99",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566/local",
+        "key": "baseUrl"
+      }
+    ]
+  },
+  "globals": {
+    "id": "e3853b86-36e9-4c50-9620-2ddb13dc605e",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 12,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 7,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 2367.4285714285716,
+      "responseMin": 41,
+      "responseMax": 11897,
+      "responseSd": 4172.277173957471,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1792544295532,
+      "completed": 1792544312634
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 7,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "0e9e98fa-ca22-49b4-a785-43140801886f",
+          "httpRequestId": "3ee410eb-14f1-4715-be54-b7a177a31f37"
+        },
+        "item": {
+          "id": "f9e052e8-1af2-4444-a348-4f2d6fbcd22a",
+          "name": "Read coupon from DynamoDB",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "{{couponId}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "740da0c7-4826-43d9-aed8-dc07dad4a7c6",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"GET returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+                  "pm.test(\"Requested coupon and fields\", () => { const data = pm.response.json(); pm.expect(data.coupon_id).to.equal(pm.collectionVariables.get(\"couponId\")); pm.expect(data).to.have.all.keys(\"coupon_id\", \"title\", \"description\", \"coupon_code\", \"campaign_id\", \"provider_id\", \"provider_name\", \"start_date\", \"end_date\"); pm.collectionVariables.set(\"originalCoupon\", JSON.stringify(data)); });"
+                ],
+                "_lastExecutionId": "fc84b721-416d-42e5-8220-8862f9170a52"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "319326de971100158f6fa0daeec978fba1f17e4b"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "f76eda6d-1304-4ac6-8013-576c74e80685",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "38a95bf2-96cb-4e3e-b471-8f8cc1655dee",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:15 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "358"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "03c6912e-e8a3-46d2-8f4c-3407bbb22d77"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "0e73febc="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e27-c821660d45c762a04e3715be;Parent=1de2a4abe2e879c6;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              99,
+              97,
+              109,
+              112,
+              97,
+              105,
+              103,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              67,
+              72,
+              82,
+              73,
+              83,
+              84,
+              77,
+              65,
+              83,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              83,
+              65,
+              86,
+              69,
+              50,
+              48,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              51,
+              49,
+              57,
+              51,
+              50,
+              54,
+              100,
+              101,
+              57,
+              55,
+              49,
+              49,
+              48,
+              48,
+              49,
+              53,
+              56,
+              102,
+              54,
+              102,
+              97,
+              48,
+              100,
+              97,
+              101,
+              101,
+              99,
+              57,
+              55,
+              56,
+              102,
+              98,
+              97,
+              49,
+              102,
+              49,
+              55,
+              101,
+              52,
+              98,
+              34,
+              44,
+              34,
+              100,
+              101,
+              115,
+              99,
+              114,
+              105,
+              112,
+              116,
+              105,
+              111,
+              110,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              119,
+              104,
+              101,
+              110,
+              32,
+              121,
+              111,
+              117,
+              32,
+              98,
+              111,
+              111,
+              107,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              115,
+              116,
+              97,
+              121,
+              32,
+              116,
+              104,
+              114,
+              111,
+              117,
+              103,
+              104,
+              32,
+              68,
+              101,
+              99,
+              101,
+              109,
+              98,
+              101,
+              114,
+              32,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              101,
+              110,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              55,
+              50,
+              52,
+              52,
+              52,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              70,
+              65,
+              73,
+              82,
+              77,
+              79,
+              78,
+              84,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              72,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              97,
+              110,
+              100,
+              32,
+              82,
+              101,
+              115,
+              111,
+              114,
+              116,
+              115,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              114,
+              116,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              54,
+              57,
+              56,
+              53,
+              50,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 11897,
+          "responseSize": 358
+        },
+        "id": "f9e052e8-1af2-4444-a348-4f2d6fbcd22a",
+        "assertions": [
+          {
+            "assertion": "GET returns 200",
+            "skipped": false
+          },
+          {
+            "assertion": "JSON response",
+            "skipped": false
+          },
+          {
+            "assertion": "Requested coupon and fields",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "e952a1b8-ace3-404e-864e-a4a1bb862676",
+          "length": 7,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "196ac36d-e510-407a-a0c9-7a95a8d57f4f"
+        },
+        "item": {
+          "id": "4778874d-d465-4940-b3e7-9634d209e69c",
+          "name": "Update existing coupon",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "{{couponId}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Part 2 Newman update\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "a60df5c0-c73c-43ce-9dd5-6116d8b77ff2",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"PUT returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Updated title and preserved fields\", () => { const expected = JSON.parse(pm.collectionVariables.get(\"originalCoupon\")); expected.title = \"Part 2 Newman update\"; pm.expect(pm.response.json()).to.deep.equal(expected); });"
+                ],
+                "_lastExecutionId": "fb40b138-8c2a-4a22-81b3-2d32ae3e2a60"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "319326de971100158f6fa0daeec978fba1f17e4b"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1bfd62cd-ee09-494e-b6e5-e4b51bed3ec7",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "33",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\": \"Part 2 Newman update\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "c8336988-7d07-4833-a9c8-917ddcb6765a",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:27 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "351"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "eac20421-b1f7-4146-915d-80dbafaa85ac"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "701c829d="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e33-0c8a816e613dcc4e86497cf9;Parent=38cf2382713de140;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              99,
+              97,
+              109,
+              112,
+              97,
+              105,
+              103,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              67,
+              72,
+              82,
+              73,
+              83,
+              84,
+              77,
+              65,
+              83,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              83,
+              65,
+              86,
+              69,
+              50,
+              48,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              51,
+              49,
+              57,
+              51,
+              50,
+              54,
+              100,
+              101,
+              57,
+              55,
+              49,
+              49,
+              48,
+              48,
+              49,
+              53,
+              56,
+              102,
+              54,
+              102,
+              97,
+              48,
+              100,
+              97,
+              101,
+              101,
+              99,
+              57,
+              55,
+              56,
+              102,
+              98,
+              97,
+              49,
+              102,
+              49,
+              55,
+              101,
+              52,
+              98,
+              34,
+              44,
+              34,
+              100,
+              101,
+              115,
+              99,
+              114,
+              105,
+              112,
+              116,
+              105,
+              111,
+              110,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              119,
+              104,
+              101,
+              110,
+              32,
+              121,
+              111,
+              117,
+              32,
+              98,
+              111,
+              111,
+              107,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              115,
+              116,
+              97,
+              121,
+              32,
+              116,
+              104,
+              114,
+              111,
+              117,
+              103,
+              104,
+              32,
+              68,
+              101,
+              99,
+              101,
+              109,
+              98,
+              101,
+              114,
+              32,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              101,
+              110,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              55,
+              50,
+              52,
+              52,
+              52,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              70,
+              65,
+              73,
+              82,
+              77,
+              79,
+              78,
+              84,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              72,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              97,
+              110,
+              100,
+              32,
+              82,
+              101,
+              115,
+              111,
+              114,
+              116,
+              115,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              114,
+              116,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              54,
+              57,
+              56,
+              53,
+              50,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              34,
+              80,
+              97,
+              114,
+              116,
+              32,
+              50,
+              32,
+              78,
+              101,
+              119,
+              109,
+              97,
+              110,
+              32,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 4420,
+          "responseSize": 351
+        },
+        "id": "4778874d-d465-4940-b3e7-9634d209e69c",
+        "assertions": [
+          {
+            "assertion": "PUT returns 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Updated title and preserved fields",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "23dcfd8e-5491-4752-8011-80afbd8a5710",
+          "length": 7,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d1506c90-b0d2-4402-97ab-2261d2c4e7a8"
+        },
+        "item": {
+          "id": "36528783-bc60-474c-928b-a19e2cc9fbd9",
+          "name": "Read persisted change",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "{{couponId}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "03855f38-e36f-4dc9-9866-5059fad4124f",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"GET returns 200 after update\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Database persisted the update\", () => pm.expect(pm.response.json().title).to.equal(\"Part 2 Newman update\"));"
+                ],
+                "_lastExecutionId": "ca414107-246e-4311-8a0a-0aa69416947e"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "319326de971100158f6fa0daeec978fba1f17e4b"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "336a6dba-0561-48db-83b5-2b1cea3eed50",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "ff358858-266f-4725-83a2-1a0093bbc5e1",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:32 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "351"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "d36c41fa-1519-42c0-81c2-d7506369b191"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "a5761688="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e38-42c2e67f70f1bf9a14a5fd82;Parent=60eca5e7d34a3f89;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              99,
+              97,
+              109,
+              112,
+              97,
+              105,
+              103,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              67,
+              72,
+              82,
+              73,
+              83,
+              84,
+              77,
+              65,
+              83,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              83,
+              65,
+              86,
+              69,
+              50,
+              48,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              51,
+              49,
+              57,
+              51,
+              50,
+              54,
+              100,
+              101,
+              57,
+              55,
+              49,
+              49,
+              48,
+              48,
+              49,
+              53,
+              56,
+              102,
+              54,
+              102,
+              97,
+              48,
+              100,
+              97,
+              101,
+              101,
+              99,
+              57,
+              55,
+              56,
+              102,
+              98,
+              97,
+              49,
+              102,
+              49,
+              55,
+              101,
+              52,
+              98,
+              34,
+              44,
+              34,
+              100,
+              101,
+              115,
+              99,
+              114,
+              105,
+              112,
+              116,
+              105,
+              111,
+              110,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              119,
+              104,
+              101,
+              110,
+              32,
+              121,
+              111,
+              117,
+              32,
+              98,
+              111,
+              111,
+              107,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              115,
+              116,
+              97,
+              121,
+              32,
+              116,
+              104,
+              114,
+              111,
+              117,
+              103,
+              104,
+              32,
+              68,
+              101,
+              99,
+              101,
+              109,
+              98,
+              101,
+              114,
+              32,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              101,
+              110,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              55,
+              50,
+              52,
+              52,
+              52,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              70,
+              65,
+              73,
+              82,
+              77,
+              79,
+              78,
+              84,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              72,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              97,
+              110,
+              100,
+              32,
+              82,
+              101,
+              115,
+              111,
+              114,
+              116,
+              115,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              114,
+              116,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              54,
+              57,
+              56,
+              53,
+              50,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              34,
+              80,
+              97,
+              114,
+              116,
+              32,
+              50,
+              32,
+              78,
+              101,
+              119,
+              109,
+              97,
+              110,
+              32,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 54,
+          "responseSize": 351
+        },
+        "id": "36528783-bc60-474c-928b-a19e2cc9fbd9",
+        "assertions": [
+          {
+            "assertion": "GET returns 200 after update",
+            "skipped": false
+          },
+          {
+            "assertion": "Database persisted the update",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "b5d6fec6-05d0-429e-a679-dceeacc5257e",
+          "length": 7,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "e8abac6d-6fed-4e75-90ec-4c0cbbefe12f"
+        },
+        "item": {
+          "id": "2e1eb468-ee43-47ae-af82-5e41ecf320fe",
+          "name": "Reject invalid JSON",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "{{couponId}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{broken",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f4a3740f-96a0-48c8-94d2-94611484bbc2",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Malformed JSON returns 400\", () => pm.response.to.have.status(400));"
+                ],
+                "_lastExecutionId": "c4a1b883-1df4-40e7-bf91-71cb6496e987"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "319326de971100158f6fa0daeec978fba1f17e4b"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "bea06654-37ce-49ab-926d-3cf00601db40",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "7",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{broken",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "b08ebf42-a5eb-42ce-b88a-ecdfbb96c8e8",
+          "status": "BAD REQUEST",
+          "code": 400,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:32 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "45"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "de65278a-6856-482a-85c7-8cc27b840102"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "7fd9839e="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e38-aa9f0a0b9c44b8fbec9ef384;Parent=15a5e9082c7e87d7;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              101,
+              113,
+              117,
+              101,
+              115,
+              116,
+              32,
+              98,
+              111,
+              100,
+              121,
+              32,
+              109,
+              117,
+              115,
+              116,
+              32,
+              98,
+              101,
+              32,
+              118,
+              97,
+              108,
+              105,
+              100,
+              32,
+              74,
+              83,
+              79,
+              78,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 41,
+          "responseSize": 45
+        },
+        "id": "2e1eb468-ee43-47ae-af82-5e41ecf320fe",
+        "assertions": [
+          {
+            "assertion": "Malformed JSON returns 400",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "ba4feb02-48e8-43c4-8b7d-0e65608ce8a0",
+          "length": 7,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "8758b67f-42cd-4017-b916-38937e37223a"
+        },
+        "item": {
+          "id": "28048161-5b62-4016-90eb-a28c7eda1b0c",
+          "name": "Missing coupon returns 404",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "part2-missing-coupon"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "bb684a58-a8ea-4f67-9886-f8af628c5699",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Unknown id returns 404\", () => pm.response.to.have.status(404));"
+                ],
+                "_lastExecutionId": "5bd1090e-70e8-4287-b949-658ccd4ce952"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "part2-missing-coupon"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "4314a966-d200-4c06-9b4f-25ddc5d803d0",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "c1200faa-9304-4f0a-8651-6ba52ff05503",
+          "status": "NOT FOUND",
+          "code": 404,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:32 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "30"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "d3ab2b3c-3d80-4027-84b9-fc7b64d7a21d"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "4f19e4c2="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e38-00d035197973d24ddd8afd4e;Parent=2bdca87bb7c5f3fe;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              67,
+              111,
+              117,
+              112,
+              111,
+              110,
+              32,
+              110,
+              111,
+              116,
+              32,
+              102,
+              111,
+              117,
+              110,
+              100,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 43,
+          "responseSize": 30
+        },
+        "id": "28048161-5b62-4016-90eb-a28c7eda1b0c",
+        "assertions": [
+          {
+            "assertion": "Unknown id returns 404",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "fdf23469-588a-4348-9c49-0922370fccad",
+          "length": 7,
+          "cycles": 1,
+          "position": 5,
+          "iteration": 0,
+          "httpRequestId": "fff51179-9e67-49bc-bd43-c9d1d354d423"
+        },
+        "item": {
+          "id": "0fe7308f-6d4c-4ff8-8f78-e3fdca9defad",
+          "name": "Cannot update a missing coupon",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "part2-missing-coupon"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Should not be created\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "36e00f0f-51f0-4b68-9b47-13822315fa44",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Update cannot create an unknown coupon\", () => pm.response.to.have.status(404));"
+                ],
+                "_lastExecutionId": "24c1e4eb-f3a7-4704-89ce-3ebb1c7f2563"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "part2-missing-coupon"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "ab2a93c6-8e8e-426b-92ce-7ea99c07db41",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "33",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"title\":\"Should not be created\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "d6c139b1-2317-41ee-9827-fd42a77b1a9e",
+          "status": "NOT FOUND",
+          "code": 404,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:32 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "30"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "34ed4517-c76b-4a40-b8f9-1a026a636bcc"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "851178f5="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e38-f78b35fbe22e701519e4aec2;Parent=1cc7c71b30d6fff9;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              67,
+              111,
+              117,
+              112,
+              111,
+              110,
+              32,
+              110,
+              111,
+              116,
+              32,
+              102,
+              111,
+              117,
+              110,
+              100,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 57,
+          "responseSize": 30
+        },
+        "id": "0fe7308f-6d4c-4ff8-8f78-e3fdca9defad",
+        "assertions": [
+          {
+            "assertion": "Update cannot create an unknown coupon",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "aab979b7-08a1-4d59-8b66-dc7ef6281935",
+          "length": 7,
+          "cycles": 1,
+          "position": 6,
+          "iteration": 0,
+          "httpRequestId": "bb107a78-3043-4385-9cc8-c82db740f0f7"
+        },
+        "item": {
+          "id": "073dfb45-7980-4485-ae16-8b115c3f64cc",
+          "name": "Restore original coupon",
+          "request": {
+            "url": {
+              "path": [
+                "coupons",
+                "{{couponId}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{{originalCoupon}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "62e0501b-d7dd-42bc-8563-8d6c7ea4db7b",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Restore returns 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Original fields restored\", () => pm.expect(pm.response.json()).to.deep.equal(JSON.parse(pm.collectionVariables.get(\"originalCoupon\"))));"
+                ],
+                "_lastExecutionId": "338493c0-4d2b-44f8-bbb9-8287d7f66950"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "4566",
+            "path": [
+              "local",
+              "coupons",
+              "319326de971100158f6fa0daeec978fba1f17e4b"
+            ],
+            "host": [
+              "4mlw9bkyz2",
+              "execute-api",
+              "localhost",
+              "localstack",
+              "cloud"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3d11cc25-f484-4df4-8aeb-c42137b0c694",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "4mlw9bkyz2.execute-api.localhost.localstack.cloud:4566",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "358",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"campaign_id\":\"CHRISTMAS2022\",\"coupon_code\":\"SAVE20\",\"coupon_id\":\"319326de971100158f6fa0daeec978fba1f17e4b\",\"description\":\"Save 20% on Fairmont hotels when you book your stay through December 2022\",\"end_date\":\"1672444800\",\"provider_id\":\"FAIRMONT\",\"provider_name\":\"Fairmont Hotels and Resorts\",\"start_date\":\"1669852800\",\"title\":\"Save 20% on Fairmont hotels\"}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "response": {
+          "id": "2d91f85a-3e6b-46b8-ae2b-d03c31052e3f",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Server",
+              "value": "TwistedWeb/26.4.0"
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 21 Oct 2026 00:58:32 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Content-Length",
+              "value": "358"
+            },
+            {
+              "key": "x-amzn-RequestId",
+              "value": "e7e5c16b-d1d7-4489-bffb-957c69ce34bd"
+            },
+            {
+              "key": "x-amz-apigw-id",
+              "value": "6c7f04a2="
+            },
+            {
+              "key": "X-Amzn-Trace-Id",
+              "value": "Root=1-6ad80e38-62af4fc9f54f5bb9a19f9021;Parent=9f22e98e4ce37c63;Sampled=0"
+            },
+            {
+              "key": "x-localstack",
+              "value": "2026.8.4"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              99,
+              97,
+              109,
+              112,
+              97,
+              105,
+              103,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              67,
+              72,
+              82,
+              73,
+              83,
+              84,
+              77,
+              65,
+              83,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              99,
+              111,
+              100,
+              101,
+              34,
+              58,
+              34,
+              83,
+              65,
+              86,
+              69,
+              50,
+              48,
+              34,
+              44,
+              34,
+              99,
+              111,
+              117,
+              112,
+              111,
+              110,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              51,
+              49,
+              57,
+              51,
+              50,
+              54,
+              100,
+              101,
+              57,
+              55,
+              49,
+              49,
+              48,
+              48,
+              49,
+              53,
+              56,
+              102,
+              54,
+              102,
+              97,
+              48,
+              100,
+              97,
+              101,
+              101,
+              99,
+              57,
+              55,
+              56,
+              102,
+              98,
+              97,
+              49,
+              102,
+              49,
+              55,
+              101,
+              52,
+              98,
+              34,
+              44,
+              34,
+              100,
+              101,
+              115,
+              99,
+              114,
+              105,
+              112,
+              116,
+              105,
+              111,
+              110,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              119,
+              104,
+              101,
+              110,
+              32,
+              121,
+              111,
+              117,
+              32,
+              98,
+              111,
+              111,
+              107,
+              32,
+              121,
+              111,
+              117,
+              114,
+              32,
+              115,
+              116,
+              97,
+              121,
+              32,
+              116,
+              104,
+              114,
+              111,
+              117,
+              103,
+              104,
+              32,
+              68,
+              101,
+              99,
+              101,
+              109,
+              98,
+              101,
+              114,
+              32,
+              50,
+              48,
+              50,
+              50,
+              34,
+              44,
+              34,
+              101,
+              110,
+              100,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              55,
+              50,
+              52,
+              52,
+              52,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              70,
+              65,
+              73,
+              82,
+              77,
+              79,
+              78,
+              84,
+              34,
+              44,
+              34,
+              112,
+              114,
+              111,
+              118,
+              105,
+              100,
+              101,
+              114,
+              95,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              72,
+              111,
+              116,
+              101,
+              108,
+              115,
+              32,
+              97,
+              110,
+              100,
+              32,
+              82,
+              101,
+              115,
+              111,
+              114,
+              116,
+              115,
+              34,
+              44,
+              34,
+              115,
+              116,
+              97,
+              114,
+              116,
+              95,
+              100,
+              97,
+              116,
+              101,
+              34,
+              58,
+              34,
+              49,
+              54,
+              54,
+              57,
+              56,
+              53,
+              50,
+              56,
+              48,
+              48,
+              34,
+              44,
+              34,
+              116,
+              105,
+              116,
+              108,
+              101,
+              34,
+              58,
+              34,
+              83,
+              97,
+              118,
+              101,
+              32,
+              50,
+              48,
+              37,
+              32,
+              111,
+              110,
+              32,
+              70,
+              97,
+              105,
+              114,
+              109,
+              111,
+              110,
+              116,
+              32,
+              104,
+              111,
+              116,
+              101,
+              108,
+              115,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 60,
+          "responseSize": 358
+        },
+        "id": "073dfb45-7980-4485-ae16-8b115c3f64cc",
+        "assertions": [
+          {
+            "assertion": "Restore returns 200",
+            "skipped": false
+          },
+          {
+            "assertion": "Original fields restored",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 1523
+    },
+    "failures": [],
+    "error": null
+  }
+}

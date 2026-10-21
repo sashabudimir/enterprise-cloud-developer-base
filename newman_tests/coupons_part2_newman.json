@@ -1,0 +1,212 @@
+{
+  "info": {
+    "name": "Ideal Trips Coupons - Part 2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://REPLACE_API_ID.execute-api.localhost.localstack.cloud:4566/local"
+    },
+    {
+      "key": "couponId",
+      "value": "319326de971100158f6fa0daeec978fba1f17e4b"
+    }
+  ],
+  "item": [
+    {
+      "name": "Read coupon from DynamoDB",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/coupons/{{couponId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"GET returns 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"JSON response\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"));",
+              "pm.test(\"Requested coupon and fields\", () => { const data = pm.response.json(); pm.expect(data.coupon_id).to.equal(pm.collectionVariables.get(\"couponId\")); pm.expect(data).to.have.all.keys(\"coupon_id\", \"title\", \"description\", \"coupon_code\", \"campaign_id\", \"provider_id\", \"provider_name\", \"start_date\", \"end_date\"); pm.collectionVariables.set(\"originalCoupon\", JSON.stringify(data)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update existing coupon",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/coupons/{{couponId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\": \"Part 2 Newman update\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"PUT returns 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Updated title and preserved fields\", () => { const expected = JSON.parse(pm.collectionVariables.get(\"originalCoupon\")); expected.title = \"Part 2 Newman update\"; pm.expect(pm.response.json()).to.deep.equal(expected); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read persisted change",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/coupons/{{couponId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"GET returns 200 after update\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Database persisted the update\", () => pm.expect(pm.response.json().title).to.equal(\"Part 2 Newman update\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject invalid JSON",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/coupons/{{couponId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{broken",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Malformed JSON returns 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing coupon returns 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/coupons/part2-missing-coupon"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Unknown id returns 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cannot update a missing coupon",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/coupons/part2-missing-coupon",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\":\"Should not be created\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Update cannot create an unknown coupon\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restore original coupon",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/coupons/{{couponId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{{originalCoupon}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Restore returns 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Original fields restored\", () => pm.expect(pm.response.json()).to.deep.equal(JSON.parse(pm.collectionVariables.get(\"originalCoupon\"))));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

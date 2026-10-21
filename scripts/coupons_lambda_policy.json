@@ -26,7 +26,10 @@
         "dynamodb:Scan",
         "dynamodb:DescribeTable"
       ],
-      "Resource": "arn:aws:dynamodb:us-east-1:000000000000:table/coupons"
+      "Resource": [
+        "arn:aws:dynamodb:us-east-1:000000000000:table/coupons",
+        "arn:aws:dynamodb:us-east-1:000000000000:table/coupons/index/*"
+      ]
     }
   ]
 }

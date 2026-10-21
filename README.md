@@ -1,9 +1,14 @@
-# Ideal Trips Limited — Assessment Part 1
+# Ideal Trips Limited — Assessments Parts 1 and 2
+
+For Project 2 setup, design, tests and submission steps, see [PART2.md](PART2.md).
+Run `bash scripts/run_part2.sh` in Git Bash with LocalStack running.
+
+## Part 1
 
 This fork implements GET `/coupons_poc` in the existing `coupons` REST API.
-The Node.js Lambda `coupons_list` returns HTTP 200 and exactly the static array in
-`samples/t1_sample_coupons_list_response.json`. The historic sample dates are
-preserved because this assessment requires the supplied response.
+The Node.js Lambda `coupons_list` returns HTTP 200 with `{"message":"Coupons API is working successfully"}`,
+matching the updated Part 1 instructions. The sample coupon array is used to
+seed the Part 2 database.
 
 ## Requirements
 
@@ -23,7 +28,7 @@ bash scripts/run_part1.sh --bootstrap
 
 This runs the instructor's bootstrap, unit tests, the three Part 1 provisioning
 scripts, and Newman. The bootstrap initializes the infrastructure for later
-assessment parts; those parts remain unimplemented. The original bootstrap is
+assessment parts; Part 2 is implemented in the dedicated Part 2 scripts. The original bootstrap is
 not safe to rerun against an existing initialized environment. To repeat only
 Part 1 after bootstrap has succeeded:
 
@@ -50,8 +55,7 @@ from Node.js 14 to Node.js 22, and Lambda role arguments use full ARNs.
   Gateway permission to invoke this Lambda, and deploys the `local` stage.
 - `lambda/coupons_list/tests/index.spec.js`: tests an API Gateway GET event,
   response status, JSON content type, exact sample response and repeat calls.
-- `newman_tests/coupons_newman.json`: checks HTTP 200, content type and the exact
-  three-coupon response over HTTP.
+- `newman_tests/coupons_newman.json`: checks HTTP 200, content type and the required success message over HTTP.
 
 The script prints the endpoint and writes the base URL to `.coupons_base_url`
 (which is ignored by Git). To rerun Newman separately:
@@ -66,11 +70,11 @@ Capture the passing unit test and Newman output, the deployed endpoint response,
 and the role policy. Useful commands from Git Bash:
 
 ```bash
-source scripts/t1_common.sh
-awslocal iam get-role --role-name coupons_lambda_role
-awslocal iam get-role-policy --role-name coupons_lambda_role --policy-name coupons_lambda_policy
-awslocal lambda get-function-configuration --function-name coupons_list
-awslocal apigateway get-rest-apis
+# Use the previously documented AWS CLI environment variables.
+aws --endpoint-url=http://localhost:4566 iam get-role --role-name coupons_lambda_role
+aws --endpoint-url=http://localhost:4566 iam get-role-policy --role-name coupons_lambda_role --policy-name coupons_lambda_policy
+aws --endpoint-url=http://localhost:4566 lambda get-function-configuration --function-name coupons_list
+aws --endpoint-url=http://localhost:4566 apigateway get-rest-apis
 ```
 
 Commit and push to the fork's main branch after the local integration tests pass.

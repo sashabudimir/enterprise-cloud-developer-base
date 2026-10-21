@@ -8,3 +8,5 @@ npm-debug.log
 **/test/**/*.log
 *.zip
 .coupons_base_url
+__pycache__/
+*.pyc

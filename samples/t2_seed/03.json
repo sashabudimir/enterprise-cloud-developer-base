@@ -1,0 +1,29 @@
+{
+  "coupon_id": {
+    "S": "3f656e5fad7aa840efa7ab8c40118f011b9b9b5b"
+  },
+  "title": {
+    "S": "Save 10% on Hyatt hotels"
+  },
+  "description": {
+    "S": "Save 10% on Hyatt hotels worldwide when you book two or more stays in different countries through 2023"
+  },
+  "coupon_code": {
+    "S": "TRAVEL10"
+  },
+  "campaign_id": {
+    "S": "DISCOVER"
+  },
+  "provider_id": {
+    "S": "Hyatt"
+  },
+  "provider_name": {
+    "S": "Global Hyatt"
+  },
+  "start_date": {
+    "S": "1672531200"
+  },
+  "end_date": {
+    "S": "1703980800"
+  }
+}

@@ -18,3 +18,194 @@ npx --yes newman run newman_tests/coupons_newman.json --env-var "baseUrl=$(cat .
 git add Command.txt lambda/coupons_list newman_tests/coupons_newman.json output.json unit-test-results.json newman-results.json
 git commit -m "Match Part 1 success message and add submission evidence"
 git push origin main
+
+
+# ================================================================
+# PROJECT 2: INTEGRATE DATA STORAGE
+# Open Git Bash in the project folder. Start Docker and LocalStack.
+cd /c/Users/Owner/Documents/enterprise-cloud-developer-base
+
+# Deploy Part 2, run unit/Newman tests and save actual JSON evidence:
+bash scripts/run_part2.sh
+
+# To rerun only unit tests (reinstall development dependencies first):
+(cd lambda/coupons_get_by_id && npm ci --ignore-scripts && npm test -- --runInBand)
+(cd lambda/coupons_update && npm ci --ignore-scripts && npm test -- --runInBand)
+
+# To rerun only API tests:
+npx --yes newman run newman_tests/coupons_part2_newman.json --env-var "baseUrl=$(cat .coupons_base_url)"
+
+# Demonstrate the GET endpoint:
+curl --fail --silent --show-error "$(cat .coupons_base_url)/coupons/319326de971100158f6fa0daeec978fba1f17e4b"
+
+# Show the actual captured table capacity, index and index query:
+cat evidence/part2/table-and-index.json
+cat evidence/part2/index-query.json
+
+# Commit after the LocalStack tests pass:
+git add .gitignore .gitattributes Command.txt README.md PART2.md scripts lambda/coupons_get_by_id lambda/coupons_update newman_tests samples evidence/part2
+git commit -m "Complete Project 2 DynamoDB retrieval and updates"
+git push origin main
+
+# The runner invokes the following scripts in this order:
+# bash scripts/t1_provision_coupons_lambda_role.sh
+# bash scripts/t2_create_dynamodb_table.sh
+# bash scripts/t2_add_index_to_dynamodb_table.sh
+# bash scripts/t2_seed_coupons.sh
+# bash scripts/t2_update_coupons_get_by_id_lambda.sh
+# bash scripts/t2_update_coupons_update_lambda.sh
+# bash scripts/t2_provision_endpoints.sh
+# python scripts/capture_part2_evidence.py
+
+# After successful deployment, run this during your screen recording:
+bash scripts/demo_part2.sh
+
+# PART 2 PROVISIONING COMMAND REFERENCE
+# Full script contents follow; execute the .sh files, not this combined reference.
+
+# scripts/t2_common.sh
+#!/usr/bin/env bash
+# Run scripts with bash; do not source this file from an interactive terminal.
+source "$(dirname "${BASH_SOURCE[0]}")/t1_common.sh"
+export AWS_CLI_AUTO_PROMPT=off
+
+deploy_part2_lambda() {
+  local name="$1"
+  local role_arn
+  role_arn="$(awslocal iam get-role --role-name coupons_lambda_role --query Role.Arn --output text)"
+  (cd "lambda/$name" && npm ci --omit=dev --ignore-scripts)
+  # Package only runtime code and dependencies, with index.js at the ZIP root.
+  python scripts/package_part2_lambda.py "$name"
+  local environment='Variables={COUPONS_TABLE=coupons,DYNAMODB_ENDPOINT=http://localhost.localstack.cloud:4566}'
+  if awslocal lambda get-function --function-name "$name" >/dev/null 2>&1; then
+    awslocal lambda wait function-active-v2 --function-name "$name"
+    awslocal lambda update-function-code --function-name "$name" --zip-file "fileb://${name}.zip" >/dev/null
+    awslocal lambda wait function-updated-v2 --function-name "$name"
+    awslocal lambda update-function-configuration --function-name "$name" \
+      --runtime nodejs22.x --handler index.handler --role "$role_arn" \
+      --timeout 15 --environment "$environment" >/dev/null
+    awslocal lambda wait function-updated-v2 --function-name "$name"
+  else
+    awslocal lambda create-function --function-name "$name" \
+      --runtime nodejs22.x --handler index.handler --role "$role_arn" \
+      --timeout 15 --environment "$environment" --zip-file "fileb://${name}.zip" >/dev/null
+    awslocal lambda wait function-active-v2 --function-name "$name"
+  fi
+  echo "$name deployed successfully"
+}
+
+# scripts/t2_create_dynamodb_table.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+# A 1 KB item uses 0.5 RCU per eventual read and 1 WCU per write.
+# 50 reads/second => 25 RCU; 10 writes/second => 10 WCU.
+if awslocal dynamodb describe-table --table-name coupons >/dev/null 2>&1; then
+  echo "coupons table already exists; preserving its items"
+  CURRENT="$(awslocal dynamodb describe-table --table-name coupons \
+    --query 'Table.ProvisionedThroughput.[ReadCapacityUnits,WriteCapacityUnits]' --output text)"
+  read -r READ_UNITS WRITE_UNITS <<< "$CURRENT"
+  if [[ "$READ_UNITS" != 25 || "$WRITE_UNITS" != 10 ]]; then
+    awslocal dynamodb update-table --table-name coupons --billing-mode PROVISIONED \
+      --provisioned-throughput ReadCapacityUnits=25,WriteCapacityUnits=10 >/dev/null
+  fi
+else
+  awslocal dynamodb create-table --table-name coupons \
+    --attribute-definitions AttributeName=coupon_id,AttributeType=S \
+    --key-schema AttributeName=coupon_id,KeyType=HASH \
+    --billing-mode PROVISIONED \
+    --provisioned-throughput ReadCapacityUnits=25,WriteCapacityUnits=10 >/dev/null
+fi
+awslocal dynamodb wait table-exists --table-name coupons
+awslocal dynamodb describe-table --table-name coupons \
+  --query 'Table.{Name:TableName,Key:KeySchema,Capacity:ProvisionedThroughput}'
+
+
+# scripts/t2_add_index_to_dynamodb_table.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+INDEX_NAME=provider_campaign_index
+COUNT="$(awslocal dynamodb describe-table --table-name coupons \
+  --query "length(Table.GlobalSecondaryIndexes[?IndexName=='${INDEX_NAME}'] || \`[]\`)" --output text)"
+if [[ "$COUNT" == 0 ]]; then
+  awslocal dynamodb update-table --table-name coupons \
+    --attribute-definitions AttributeName=provider_id,AttributeType=S AttributeName=campaign_id,AttributeType=S \
+    --global-secondary-index-updates ' [{"Create":{"IndexName":"provider_campaign_index","KeySchema":[{"AttributeName":"provider_id","KeyType":"HASH"},{"AttributeName":"campaign_id","KeyType":"RANGE"}],"Projection":{"ProjectionType":"ALL"},"ProvisionedThroughput":{"ReadCapacityUnits":25,"WriteCapacityUnits":10}}}]' >/dev/null
+fi
+# table-exists alone does not guarantee that a newly created GSI is active.
+ACTIVE=0
+for attempt in {1..60}; do
+  STATUS="$(awslocal dynamodb describe-table --table-name coupons \
+    --query "Table.GlobalSecondaryIndexes[?IndexName=='${INDEX_NAME}'].IndexStatus | [0]" --output text)"
+  if [[ "$STATUS" == ACTIVE ]]; then ACTIVE=1; break; fi
+  sleep 2
+done
+if [[ "$ACTIVE" != 1 ]]; then echo 'Index did not become ACTIVE' >&2; exit 1; fi
+awslocal dynamodb describe-table --table-name coupons --query Table.GlobalSecondaryIndexes
+
+
+# scripts/t2_seed_coupons.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+for ITEM in samples/t2_seed/*.json; do
+  if RESULT="$(awslocal dynamodb put-item --table-name coupons --item "file://${ITEM}" \
+    --condition-expression 'attribute_not_exists(coupon_id)' 2>&1)"; then
+    echo "Inserted $ITEM"
+  elif [[ "$RESULT" == *ConditionalCheckFailedException* ]]; then
+    echo "Preserved existing coupon for $ITEM"
+  else
+    echo "$RESULT" >&2
+    exit 1
+  fi
+done
+
+# scripts/t2_update_coupons_get_by_id_lambda.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+deploy_part2_lambda coupons_get_by_id
+
+
+# scripts/t2_update_coupons_update_lambda.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+deploy_part2_lambda coupons_update
+
+
+# scripts/t2_provision_endpoints.sh
+#!/usr/bin/env bash
+source "$(dirname "$0")/t2_common.sh"
+API_ID="$(awslocal apigateway get-rest-apis --query 'items[?name==`coupons`].id | [0]' --output text)"
+if [[ -z "$API_ID" || "$API_ID" == None ]]; then
+  API_ID="$(awslocal apigateway create-rest-api --name coupons --query id --output text)"
+fi
+ROOT_ID="$(awslocal apigateway get-resources --rest-api-id "$API_ID" --query 'items[?path==`/`].id | [0]' --output text)"
+COUPONS_ID="$(awslocal apigateway get-resources --rest-api-id "$API_ID" --query 'items[?path==`/coupons`].id | [0]' --output text)"
+if [[ -z "$COUPONS_ID" || "$COUPONS_ID" == None ]]; then
+  COUPONS_ID="$(awslocal apigateway create-resource --rest-api-id "$API_ID" --parent-id "$ROOT_ID" --path-part coupons --query id --output text)"
+fi
+RESOURCE_ID="$(awslocal apigateway get-resources --rest-api-id "$API_ID" --query 'items[?path==`/coupons/{id}`].id | [0]' --output text)"
+if [[ -z "$RESOURCE_ID" || "$RESOURCE_ID" == None ]]; then
+  RESOURCE_ID="$(awslocal apigateway create-resource --rest-api-id "$API_ID" --parent-id "$COUPONS_ID" --path-part '{id}' --query id --output text)"
+fi
+for METHOD in GET PUT; do
+  if [[ "$METHOD" == GET ]]; then FUNCTION=coupons_get_by_id; else FUNCTION=coupons_update; fi
+  if ! awslocal apigateway get-method --rest-api-id "$API_ID" --resource-id "$RESOURCE_ID" --http-method "$METHOD" >/dev/null 2>&1; then
+    awslocal apigateway put-method --rest-api-id "$API_ID" --resource-id "$RESOURCE_ID" \
+      --http-method "$METHOD" --authorization-type NONE \
+      --request-parameters method.request.path.id=true >/dev/null
+  fi
+  LAMBDA_ARN="$(awslocal lambda get-function --function-name "$FUNCTION" --query Configuration.FunctionArn --output text)"
+  awslocal apigateway put-integration --rest-api-id "$API_ID" --resource-id "$RESOURCE_ID" \
+    --http-method "$METHOD" --type AWS_PROXY --integration-http-method POST \
+    --uri "arn:aws:apigateway:${REGION}:lambda:path/2015-03-31/functions/${LAMBDA_ARN}/invocations" >/dev/null
+  SID="part2-${METHOD}-${API_ID}"
+  POLICY="$(awslocal lambda get-policy --function-name "$FUNCTION" --query Policy --output text 2>/dev/null || true)"
+  if [[ "$POLICY" != *"$SID"* ]]; then
+    awslocal lambda add-permission --function-name "$FUNCTION" --statement-id "$SID" \
+      --action lambda:InvokeFunction --principal apigateway.amazonaws.com \
+      --source-arn "arn:aws:execute-api:${REGION}:${ACCOUNT_ID}:${API_ID}/*/${METHOD}/coupons/*" >/dev/null
+  fi
+done
+awslocal apigateway create-deployment --rest-api-id "$API_ID" --stage-name "$STAGE" >/dev/null
+BASE_URL="http://${API_ID}.execute-api.localhost.localstack.cloud:4566/${STAGE}"
+printf '%s\n' "$BASE_URL" > .coupons_base_url
+echo "GET and PUT ${BASE_URL}/coupons/{id}"
